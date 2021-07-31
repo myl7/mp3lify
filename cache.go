@@ -8,8 +8,6 @@ import (
 	"path"
 )
 
-const cacheDir = "/tmp/audio"
-
 func GetCache(src string) io.ReadCloser {
 	key := base64.StdEncoding.EncodeToString([]byte(src))
 	p := path.Join(cacheDir, key)

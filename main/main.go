@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	addr := flag.String("addr", "", "")
+	addr := flag.String("addr", ":8000", "")
 	flag.Parse()
 
 	if err := mp3lify.Listen(*addr); err != nil {
