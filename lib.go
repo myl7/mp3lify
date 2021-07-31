@@ -77,19 +77,27 @@ func handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res, err := http.Get(src)
-	if err != nil {
-		http.Error(w, "Proxy request failed", http.StatusBadRequest)
-		return
-	}
+	// cacheHit := true
+	var resStream io.ReadCloser
 
-	if int(res.StatusCode/100) != 2 {
-		http.Error(w, "Proxy request failed", http.StatusBadRequest)
-		return
+	if resStream = GetCache(src); resStream == nil {
+		// cacheHit = false
+		res, err := http.Get(src)
+		if err != nil {
+			http.Error(w, "Proxy request failed", http.StatusBadRequest)
+			return
+		}
+
+		if int(res.StatusCode/100) != 2 {
+			http.Error(w, "Proxy request failed", http.StatusBadRequest)
+			return
+		}
+
+		resStream = res.Body
 	}
 
 	w.WriteHeader(http.StatusOK)
-	if err := ConvertAudio(res.Body, w); err != nil {
+	if err := ConvertAudio(resStream, w); err != nil {
 		log.Println(err)
 		return
 	}
