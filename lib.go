@@ -64,6 +64,11 @@ func Listen(addr string) error {
 }
 
 func handle(w http.ResponseWriter, req *http.Request) {
+	if ok := auth(req); !ok {
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
 	q := req.URL.Query()
 	src := q.Get("src")
 	if src == "" {
