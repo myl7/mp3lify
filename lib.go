@@ -99,7 +99,7 @@ func handle(w http.ResponseWriter, req *http.Request) {
 	defer resStream.Close()
 
 	var resReader io.Reader
-	if cacheHit {
+	if !cacheHit {
 		w, err := SetCache(src)
 		if err != nil {
 			log.Println(err)
