@@ -49,6 +49,12 @@ func handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	src, err := CleanUrl(src)
+	if err != nil {
+		http.Error(w, "Field src is invalid URL", http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	if err := ConvertAudio(src, w); err != nil {
 		log.Println(err)
