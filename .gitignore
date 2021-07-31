@@ -16,4 +16,6 @@
 
 # Dev
 .idea/
-*.{mp3,wav,flac}
+*.mp3
+*.wav
+*.flac
