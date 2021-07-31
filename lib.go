@@ -11,7 +11,7 @@ import (
 
 var ffmpegOptions = []string{"-i", "-", "-vn", "-b:a", "192k", "-f", "mp3", "-"}
 
-func ConvertAudio(r io.ReadCloser, w io.Writer) error {
+func ConvertAudio(r io.Reader, w io.Writer) error {
 	cmd := exec.Command("ffmpeg", ffmpegOptions...)
 
 	in, err := cmd.StdinPipe()
@@ -77,11 +77,11 @@ func handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// cacheHit := true
+	cacheHit := true
 	var resStream io.ReadCloser
 
 	if resStream = GetCache(src); resStream == nil {
-		// cacheHit = false
+		cacheHit = false
 		res, err := http.Get(src)
 		if err != nil {
 			http.Error(w, "Proxy request failed", http.StatusBadRequest)
@@ -96,8 +96,25 @@ func handle(w http.ResponseWriter, req *http.Request) {
 		resStream = res.Body
 	}
 
+	defer resStream.Close()
+
+	var resReader io.Reader
+	if cacheHit {
+		w, err := SetCache(src)
+		if err != nil {
+			log.Println(err)
+			resReader = resStream
+		} else {
+			defer w.Close()
+
+			resReader = io.TeeReader(resStream, w)
+		}
+	} else {
+		resReader = resStream
+	}
+
 	w.WriteHeader(http.StatusOK)
-	if err := ConvertAudio(resStream, w); err != nil {
+	if err := ConvertAudio(resReader, w); err != nil {
 		log.Println(err)
 		return
 	}
